@@ -1,0 +1,75 @@
+Terraform State
+===============
+Terraform state file store the state about the managed infrastructure and configuration.The state file is in JSON format.Terraform use state file to map real-world resources to terraform configuration and keep track of metadta.
+
+By default state file is stored locally by name terraform.tfstate,but it can also be stored remotely.
+
+Prior to any operation,Terraform does a 'refresh' to update the state with the real infrastructure.
+
+The primary purpose of state file is to store bindings between resources in remote system and resources in configuration.
+
+Backends
+--------
+Backends determine where 'terraform.tfstate' file will be stored.
+By default state file is stored locally.
+
+Remote State, terraform writes the state data to a remote data store,which can be shared between all team members.
+
+If backend supports,terraform will lock the state file for all the operations that could write state file.
+
+State locking can be disabled by using '-lock'
+
+Configuration
+
+terraform {
+  backend "s3" {
+     bucket = "mybucket"
+     key = "path/to/mykey"
+     region = "us-east-1"
+  }
+}
+
+Commands
+--------
+terraform state list
+- list all the reources in the state file
+
+terraform state mv existing_resource_name new_resource_name
+- rename the existing resource name,without destroying/re-creating the resource.
+
+terraform state rm existing_resource_name
+- remove the resource from state file without destroying the resource
+- no longer manage the removed resource
+
+terraform state pull
+- pull the state file
+
+terrform state push
+- push the state file
+
+terraform state show resource_name
+- show the attributes of specific resource
+
+Taint/Untaint
+-------------
+terraform taint existing_resource_name
+- recreate the resource
+- mark the resource as taint in the state file
+
+terraform untaint existing_resource_name
+- stop manaing the resource,with out destroying the resource
+- mark the resource as untaint in the state file
+
+Senarios
+--------
+- If we create a resource using terraform configuration and later made some changes in the resource from outside,On next apply we will be notified of changes which are made outside of Terraform.
+
+- In this case terraform.tfstate will not be updated unless ncessary changes are made in configuration file.
+
+- If the terraform managed resource is deleted from outside,on next apply it will be recreated.
+
+- In case terraform.tfstate file is deleted manuallly,on next apply the resource will be created again.
+
+- In case ec2 instance is created from terraform and later ec2 instance is stopped from AWS console.On next apply it will notify us about the changes of the instance,but it won't start the instance again
+
+
